@@ -1,0 +1,33 @@
+[
+    {
+        "name": "Brick", 
+        "absorption": 0.03,
+        "speed_of_sound": 4200,
+        "default": true
+    },
+    {
+        "name": "Concrete", 
+        "absorption": 0.02, 
+        "speed_of_sound": 3500
+    },
+    {
+        "name": "Drywall", 
+        "absorption": 0.04,
+        "speed_of_sound": 6800
+    },
+    {
+        "name": "Glass", 
+        "absorption": 0.05,
+        "speed_of_sound": 4540 
+    },
+    {
+        "name": "Metal", 
+        "absorption": 0.01,
+        "speed_of_sound": 5050
+    },
+    {
+        "name": "Wood", 
+        "absorption": 0.03,
+        "speed_of_sound": 3960
+    }
+]
