@@ -51,8 +51,8 @@ class AlgorithmHandler:
         pass
 
     def __init__(self):
-        # self.lib = CDLL('../../algorithm/build/libRayTracing.dll')
-        self.lib = CDLL('libRayTracing.dll') # Realse
+        self.lib = CDLL('../../algorithm/build/libRayTracing.dll')
+        # self.lib = CDLL('libRayTracing.dll') # Realse
 
         self.c_function_run_simulation = self.lib.run_ray_tracing
 
