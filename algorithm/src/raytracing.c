@@ -376,9 +376,6 @@ Ray* execute_simulation(Scene* scene_ptr, Settings* settings_ptr){
     }
 
     // FINISH 
-    printf("REFLECTIONS_COUNT: %d\n", REFLECTIONS_COUNT);
-    printf("CAUGHT_RAYS_AMOUNT: %d\n", scene_ptr->caught_rays_amount);
-
     return scene_ptr->caught_rays;
 }
 

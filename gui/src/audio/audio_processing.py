@@ -25,7 +25,6 @@ def load_wave_file(path):
 def get_channel_reverb(wave_file, channel_caught_rays, channel_progress):
     data = wave_file['signal']
     fs = wave_file['frame_rate']
-    print(fs)
 
     rays_amount = len(channel_caught_rays)
 
