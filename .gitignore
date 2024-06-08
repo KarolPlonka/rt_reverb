@@ -1,17 +1,8 @@
 .vscode/
 
-build
-
-algorithm/Makefile
-algorithm/CMakeFiles/
-algorithm/CMakeFiles/
-algorithm/cmake_install.cmake
-algorithm/CMakeCache.txt
+algorithm/build
 
 **/__pycache__
-
-algorithm/libRayTracing.dll
-algorithm/libRayTracing.dll.a
 
 gui/.venv
 
