@@ -1,0 +1,1330 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>RT Reverb</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Hakim El Hattab">
+
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/black.css" id="theme">
+
+		<link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+
+        <script>
+            var canvasWaves;
+            var contextWaves;
+
+            var max_depth = 3;
+            var max_r = 300;
+            var thickness = 15;
+            var max_circles_amount = 5;
+            var circles_amount = 1; 
+            var base_opaciy = 0.3;
+
+            var circles = [];
+
+            var do_reflect = 0;
+
+            function newCircle(x, y, d){
+                if(circles_amount>max_circles_amount) return;
+
+                circles.push({"x": x, "y": y, "r": 1, "depth": d})
+                circles_amount += 1;
+            }
+
+            function reload_and_draw(canvas_id, do_reflect_arg, start_x = 220, start_y = 200){
+                canvasWaves = document.getElementById(canvas_id);
+                contextWaves = canvasWaves.getContext('2d');
+                console.log(canvasWaves);
+
+                canvasWaves.height=400;
+                canvasWaves.width=800;
+
+                do_reflect = do_reflect_arg;
+
+                contextWaves.beginPath();
+                contextWaves.lineWidth = 2;
+                circles = [
+                    {"x": start_x, "y": start_y, "r": 1, "depth": 1}
+                ];
+                circles_amount = 1;
+                console.log("reload");
+                draw();
+            }
+
+            function show_rays(){
+                document.querySelectorAll('.ray').forEach((el) => {
+                    el.style.animation = "growRay 10s ease-in-out forwards";
+                });
+            }
+
+            function show_reflection_rays(){
+                document.querySelectorAll('.ray-reflection').forEach((el) => {
+                    el.style.animation = "growRay 10s ease-in-out forwards";
+                });
+            }
+            
+            function show_descr(id, delay=2000, text=""){
+                document.querySelectorAll('.description').forEach((el) => {
+                    if (el.id == "descr__"+id){
+                        if (text !== "" && el.innerHTML !== text){
+                            el.style.opacity = 0;
+                            // el.innerHTML = text;
+                        }
+                        setTimeout(() => {
+                            el.style.opacity = 1;
+                            if (text != ""){
+                                el.innerHTML = text;
+                            }
+                        }, delay);
+                    }
+                });
+            }
+                //
+
+            function draw(){
+                contextWaves.clearRect(0, 0, canvasWaves.width, canvasWaves.height);
+                
+                circles.forEach((circle, index) => {
+
+                    for(var i = thickness; i > -thickness; i--){
+                        if (circle.r < i) break;
+
+                        contextWaves.beginPath();
+
+                        if(i==0) opacity = base_opaciy * ((1 - (circle.depth/max_depth)) * (1 - (circle.r/max_r)));
+                        else opacity = base_opaciy * ((1 - (Math.abs(i)/thickness)) * (1 - (circle.depth/max_depth)) * (1 - (circle.r/max_r)));
+                        
+                        contextWaves.strokeStyle = "rgba( 255, 255, 255, "+opacity+" )"
+                        contextWaves.arc(circle.x, circle.y, circle.r+i, 0, 2 * Math.PI);
+                        contextWaves.stroke();
+                    }
+
+                    //delete circle
+                    if (circle.r > max_r || circle.depth > max_depth){
+                        circles.splice(index, 1);
+                        circles_amount -= 1;
+                    }
+
+                    //wall reflections
+                    if (do_reflect == 1)
+                    {
+
+                        if(circle.x + circle.r == canvasWaves.width){
+                            newCircle(canvasWaves.width, circle.y, circle.depth + 1);
+                        }
+                        if(circle.x - circle.r == 0){
+                            newCircle(0, circle.y, circle.depth + 1);
+                        }
+                        if(circle.y + circle.r == canvasWaves.height){
+                            newCircle(circle.x, canvasWaves.height, circle.depth + 1);
+                        }
+                        if(circle.y - circle.r == 0){
+                            newCircle(circle.x, 0, circle.depth + 1);
+                        }
+                    }
+
+                    circle.r+=1;
+                });
+                if (circles_amount > 0)	
+                {
+                    requestAnimationFrame(draw);
+                }
+            }
+
+        </script>
+        <style>
+            .cursor {
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                background-color: #ffffff;
+                /* transform: translate(-50%, -50%); */
+                animation: pulse 1s infinite;
+                margin-right: 10px;
+                cursor: pointer;
+                font-size: 22px;
+                font-weight: 900;
+                color: #000;
+
+              }
+              
+              @keyframes pulse {
+                0% {
+                  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+                }
+                70% {
+                  box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+                }
+                100% {
+                  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+                }
+              }
+
+              .cursor_text {
+                font-size: 16px;
+                color: #fff;
+                text-align: center;
+                animation: wiggle 2s infinite;
+                /* margin-top: -100px; */
+              }
+
+              /*move up and down*/
+                @keyframes wiggle {
+                    0%, 25%, 100% {
+                        margin-left: 0;
+                    }
+                    5% {
+                        margin-left: -5px;
+                    }
+                    15% {
+                        margin-left: 5px;
+                    }
+                }
+
+            
+            .fade_in{
+                opacity: 0;
+                animation: fadeIn 1s ease-in-out 1s forwards;
+            }
+            
+            @keyframes fadeIn {
+                0% { opacity: 0; }
+                100% { opacity: 1; }
+            }
+
+            .description {
+                opacity: 0;
+                text-align: center;
+                height: 100px;
+                vertical-align: middle;
+                font-size: 24px;
+                font-weight: 100;
+                margin-bottom: 50px;
+                transition: opacity 1s;
+            }
+
+            .pink_text {
+                color: #fff;
+                text-shadow:
+                    0 0 7px #fff,
+                    0 0 42px #f0f,
+                    0 0 82px #f0f,
+                    0 0 92px #f0f;
+                animation: glow 1.5s infinite alternate;
+            }
+
+            @keyframes glow {
+                0% {
+                    text-shadow:
+                        0 0 7px #fff,
+                        0 0 42px #f0f,
+                        0 0 82px #f0f,
+                        0 0 92px #f0f;
+                }
+                100% {
+                    text-shadow:
+                        0 0 10px #fff,
+                        0 0 50px #f0f,
+                        0 0 100px #f0f,
+                        0 0 120px #f0f;
+                }
+            }
+
+            @keyframes moveGradient {
+                0% {
+                    background-position: 0% 50%;
+                }
+                50% {
+                    background-position: 100% 50%;
+                }
+                100% {
+                    background-position: 0% 50%;
+                }
+            }                            
+            
+            .column_center {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+
+            @keyframes growRay {
+                from {
+                    width: 0;
+                }
+                to {
+                    width: 800px; /* Use CSS variables for flexibility */
+                }
+            }
+
+            .ray {
+                width: 0;
+                /* transition: width 10s; */
+                /* animation: growRay 10s ease-in-out forwards; /* Adjust duration as needed */ */
+            }
+
+            .buttons-row {
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+                padding: 20px;
+            }
+
+            
+            .button-wrapper {
+                display: flex;
+                align-items: center;
+            }
+
+        </style>
+
+
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+	</head>
+
+	<body >
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+                            <!-- <h2> <span class="pink_text">RT</span> REVERB</h2> -->
+                            <h2 class="pink_text">RT REVERB</h2>
+
+                            <br/>
+							<canvas id="sine" width="900" height="200"></canvas>
+							<script type="text/javascript">
+
+								var canvas = document.getElementById("sine");
+								var context = canvas.getContext("2d");
+
+								var amplitude = 50;
+								var frequency = 0.02;
+								var offset = 0;
+								var sineMargin = 200;
+
+								const gradSine = context.createLinearGradient(sineMargin, 0, canvas.width - sineMargin, 0);
+								gradSine.addColorStop(0.0, 'transparent');
+								gradSine.addColorStop(0.5, 'rgba(255,0,255)');
+								gradSine.addColorStop(1, 'transparent');
+
+								const gradLine = context.createLinearGradient(0, 0, canvas.width, 0);
+								gradLine.addColorStop(0.0, 'transparent');
+								gradLine.addColorStop(0.5, 'black');
+								gradLine.addColorStop(1, 'transparent');
+
+								function drawLine() {
+									context.clearRect(0, 0, canvas.width, canvas.height);
+									context.lineWidth = 7;
+									context.strokeStyle = gradLine;
+									context.beginPath();
+									context.moveTo(0, canvas.height / 2)
+									context.lineTo(canvas.width, canvas.height / 2)
+									context.stroke()
+									requestAnimationFrame(drawLine);
+								}
+
+								function drawSine() {
+									context.strokeStyle = gradSine;
+									context.beginPath();
+									context.lineWidth = 15;
+									for (var x = sineMargin; x < canvas.width - sineMargin; x++) {
+										var y = amplitude * Math.sin(frequency * x + offset);
+										context.lineTo(x, canvas.height / 2 - y);
+									}
+									context.stroke();
+									offset += 0.04;
+
+									requestAnimationFrame(drawSine);
+								}
+
+								drawLine();
+								drawSine();
+							</script>
+							
+							<h3 style="text-align: left; font-weight: 100; color: #aaa;">Simulating <b style="color: #fff;">reverb</b> in a room using Audio<b style="color: #fff;"> Ray Tracing</b></h4>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    Let's start with taking a look how sound waves propagate in the air.
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__no_obstacles">
+                        The white circle represents a sound wave emitted from a sound source (speaker). After a while, the wave will reach the listener (microphone).
+                    </div>
+
+					<div data-id="bg-intro" style="position: relative; overflow: hidden; height: 400px; width: 800px; margin-inline: auto;">
+						<canvas id="bgc_intro" style="position: absolute; top: 0; left: 0; height: 400px; width: 800px;"></canvas>
+                        <img src="speaker.webp" style="position: absolute; top: 150px; left: 250px; height: 70px;" data-id="speaker"/>
+						<img src="mike.png" style="position: absolute; top: 150px; left: 500px; height: 70px;"/>
+					</div>
+
+					<!-- <div style="display: flex;"> -->
+					<!-- <div onclick="reload_and_draw('bgc_intro', 0,290 )" style="margin-top: 20px ;width: 40px; height: 40px; border-radius: 50%; background-color: #ccc; cursor: pointer; margin-inline: auto;"> -->
+     <!--                    dupa -->
+     <!--                </div> -->
+                    <div class="column_center fade_in">
+						<div class="cursor" onclick="reload_and_draw('bgc_intro', 0,290 ); show_descr('no_obstacles', 2000)"></div>
+					    <div data-delay="2000" class="cursor_text" >click me</div>
+					</div>
+
+
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__obstacles" style="opacity: 1;">
+                        Let's introduce some obstacles for the sound wave to interact with.
+                    </div>
+					<div data-id="bg-intro" style="position: relative; overflow: hidden; border: 2px solid white; height: 400px; width: 800px; margin-inline: auto;">
+						<canvas id="bgc_intro2" style="position: absolute; top: 0; left: 0; height: 400px; width: 800px;"></canvas>
+                        <img src="speaker.webp" style="position: absolute; top: 150px; left: 200px; height: 70px;" data-id="speaker"/>
+						<img src="mike.png" style="position: absolute; top: 150px; left: 550px; height: 70px;"/>
+					</div>
+
+					<div style="display: flex;">
+					<!-- <div onclick="reload_and_draw('bgc_intro2', 1,250 )" style="margin-top: 20px ;width: 40px; height: 40px; border-radius: 50%; background-color: #ccc; cursor: pointer; margin-inline: auto;"></div> -->
+
+                    <div class="column_center fade_in">
+						<div class="cursor" onclick="reload_and_draw('bgc_intro2', 1,250); 
+                            show_descr(
+                                'obstacles',
+                                4000,
+                                'Aside from the direct path, the sound wave can also reflect off the walls. This causes the sound to reach the listener multiple times, with a delay causing an echo.'
+                            )
+                            "></div>
+					    <div data-delay="2000" class="cursor_text" >click me</div>
+					</div>
+
+				</section>
+
+				<!-- INITIAL RAYS -->
+				<!-- <section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)" > -->
+				<!-- 	<h4>Propagacja</h4> -->
+				<!-- 	<div data-id="bg-init" style="position: relative; overflow: hidden; border: 2px solid white; height: 400px; width: 800px; margin-inline: auto;"> -->
+				<!-- 		<div  -->
+				<!-- 			data-id="aux" -->
+				<!-- 		></div> -->
+				<!-- 		<canvas id="bgc1" style="position: absolute; top: 0; left: 0; height: 400px; width: 800px;"></canvas> -->
+				<!-- 		<img src="speaker.webp" style="position: absolute; top: 150px; left: 180px; height: 70px;"/> -->
+				<!---->
+				<!-- 	</div> -->
+				<!-- 	<div onclick="reload_and_draw('bgc1', 0)" style="margin-top: 20px ;width: 40px; height: 40px; border-radius: 50%; background-color: #ccc; cursor: pointer; margin-inline: auto;"> -->
+				<!-- 	</div> -->
+				<!-- </section> -->
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__represent" style="opacity: 1;">
+                        How to represent sound using rays?
+                    </div>
+
+					<div data-id="bg-init" style="position: relative; overflow: hidden; border: 2px solid white; height: 400px; width: 800px; margin-inline: auto;">
+						
+						<canvas id="bgc2" style="position: absolute; top: 0; left: 0; height: 400px; width: 800px;"></canvas>
+						<div 
+							data-id="aux"
+						></div>
+                        <div 
+                            class="ray"
+                            data-id="ray_init_1"
+                            style="
+                                position: absolute; 
+                                top: 200px; 
+                                left: 220px; 
+                                border: 2px solid white;
+                                transform-origin: left; 
+                                transform: rotate(180deg);
+                            "
+                        ></div>
+                        <div 
+                            class="ray ray-animate"
+                            data-id="ray_init_2"
+                            style=" 
+                                position: absolute; 
+                                top: 200px; 
+                                left: 220px; 
+                                border: 2px solid white;
+                                transform-origin: left; 
+                                transform: rotate(45deg);
+                            "
+                        ></div>
+                        <div 
+                            class="ray ray-animate"
+                            data-id="ray_init_3"
+                            style="
+                                position: absolute; 
+                                top: 200px; 
+                                left: 220px; 
+                                border: 2px solid white;
+                                transform-origin: left; 
+                                transform: rotate(90deg);
+                            "
+                        ></div>
+                        <div 
+                            class="ray ray-animate"
+                            data-id="ray_init_4"
+                            style=" 
+                                position: absolute; 
+                                top: 200px; 
+                                left: 220px; 
+                                border: 2px solid white;
+                                transform-origin: left; 
+                                transform: rotate(135deg);
+                            "
+                        ></div>
+                        <div 
+                            class="ray ray-animate"
+                            data-id="ray_init_5"
+                            style=" 
+                                position: absolute; 
+                                top: 200px; 
+                                left: 220px; 
+                                border: 2px solid white;
+                                transform: rotate(180deg);
+                            "
+                        ></div>
+                        <div 
+                            class="ray ray-animate"
+                            data-id="ray_init_6"
+                            style=" 
+                                position: absolute; 
+                                top: 200px; 
+                                left: 220px; 
+                                border: 2px solid white;
+                                transform-origin: left; 
+                                transform: rotate(225deg);
+                            "
+                        ></div>
+                        <div 
+                            class="ray ray-animate"
+                            data-id="ray_init_7"
+                            style=" 
+                                position: absolute; 
+                                top: 200px; 
+                                left: 220px; 
+                                border: 2px solid white;
+                                transform-origin: left; 
+                                transform: rotate(270deg);
+                            "
+                        ></div>
+                        <div 
+                            class="ray ray-animate"
+                            data-id="ray_init_8"
+                            style=" 
+                                position: absolute; 
+                                top: 200px; 
+                                left: 220px; 
+                                border: 2px solid white;
+                                transform-origin: left; 
+                                transform: rotate(315deg);
+                            "
+                        ></div>
+                        <img src="speaker.webp" style="position: absolute; top: 150px; left: 180px; height: 70px; filter: drop-shadow(0px 0px 5px #000);"/>
+					</div>
+					<!-- <div onclick="reload_and_draw('bgc2', 0)" style="margin-top: 20px ;width: 40px; height: 40px; border-radius: 50%; background-color: #ccc; cursor: pointer; margin-inline: auto;"> -->
+                    <div class="column_center fade_in">
+                        <div class="cursor" onclick="reload_and_draw('bgc2', 0); 
+                            show_descr(
+                                'represent',
+                                4000,
+                                'Audio ray tracing method represents sound wave as a set of rays. It`s important to note that each ray contains only fraction of the wave energy. When we split the wave into 8 rays, each ray will contain 1/8 of the wave total energy.'
+                            );
+                            show_rays();"
+                        >
+                        </div>
+                        <div data-delay="2000" class="cursor_text" >click me</div>
+                    </div>
+				</section>
+
+				<!-- REFLECTION -->
+				<!-- <section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)"> -->
+				<!-- 	<h4>Odbicie</h4> -->
+				<!-- 	<div data-id="bg-init" style="position: relative; overflow: hidden; border: 2px solid white; height: 400px; width: 800px; margin-inline: auto;"> -->
+				<!-- 		 -->
+				<!-- 		<canvas id="bgc3" style="position: absolute; top: 0; left: 0; height: 400px; width: 800px;"></canvas> -->
+				<!---->
+				<!-- 		<img src="speaker.webp" style="position: absolute; top: 150px; left: 180px; height: 70px;"/> -->
+				<!-- 	</div> -->
+				<!-- 	<div onclick="reload_and_draw('bgc3', 1)" style="margin-top: 20px ;width: 40px; height: 40px; border-radius: 50%; background-color: #ccc; cursor: pointer; margin-inline: auto;"></div> -->
+				<!-- </section> -->
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__ray_hit_wall" style="opacity: 1;" data-id="descr">
+                        Let's see what happens when ray hits the wall.
+                    </div>
+					<div data-id="bg-ref" style="position: relative; overflow: hidden; border: 2px solid white; height: 400px; width: 800px; margin-inline: auto;">
+						<div 
+							data-id="ray_primary"
+							data-auto-animate-delay="0"
+							style="
+								width: 0px;
+								position: absolute;
+								top: 198px;
+								left: 110px;
+								border: 6px solid white;
+							"
+						></div>
+
+                        <img src="speaker.webp" style="position: absolute; top: 150px; left: 40px; height: 70px;" data-id="speaker"/>
+					</div>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__ray_hit_wall_explain" style="opacity: 1;" data-id="descr">
+                        Let's see what happens when ray hits the wall.
+                    </div>
+					<div data-id="bg-ref" style="position: relative; overflow: hidden; border: 2px solid white; height: 400px; width: 800px; margin-inline: auto;">
+
+						<div 
+							data-id="ray_primary"
+							style="
+								width: 750px;
+								position: absolute;
+								top: 198px;
+								left: 110px;
+								border: 6px solid white;
+							"
+						></div>
+                        <img src="speaker.webp" style="position: absolute; top: 150px; left: 40px; height: 70px;" data-id="speaker"/>
+					</div>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__refs" style="opacity: 1;" data-id="descr">
+                        Let's see what happens when ray hits the wall.
+                    </div>
+
+					<div data-id="bg-ref" style="position: relative; overflow: hidden; border: 2px solid white; height: 400px; width: 800px; margin-inline: auto;">
+						<canvas id="bgc4" style="position: absolute; top: 0; left: 0; height: 400px; width: 800px;"></canvas>
+						<img src="speaker.webp" style="position: absolute; top: 150px; left: 40px; height: 70px;"/>
+						<div 
+							data-id="ray_primary"
+							style="
+								width: 750px;
+								position: absolute;
+								top: 197px;
+								left: 110px;
+								border: 6px solid white;
+							"
+						></div>
+						<div 
+                            class="ray-reflection"
+							data-id="ray_ref_1"
+							style="
+								position: absolute; 
+								top:200px; 
+								left:800px; 
+								border: 2px solid white;
+								transform-origin: left; 
+								transform: rotate(135deg);
+							"
+						></div>
+						<div 
+                            class="ray-reflection"
+							data-id="ray_ref_2"
+							style=" 
+								position: absolute; 
+								top:200px; 
+								left:800px; 
+								border: 2px solid white;
+								transform-origin: left; 
+								transform: rotate(225deg);
+							"
+						></div>
+						<div 
+                            class="ray-reflection"
+							data-id="ray_ref_3"
+							style="
+								position: absolute; 
+								top:200px; 
+								left: 800px; 
+								border: 2px solid white;
+								transform-origin: left; 
+								transform: rotate(160deg);
+							"
+						></div>
+						<div 
+                            class="ray-reflection"
+							data-id="ray_ref_4"
+							style=" 
+								position: absolute; 
+								top:200px; 
+								left:800px; 
+								border: 2px solid white;
+								transform-origin: left; 
+								transform: rotate(200deg);
+							"
+						></div>
+					</div>
+
+                    <div class="buttons-row">
+
+                        <!-- <div onclick="reload_and_draw('bgc4', 1,800)" style="margin-top: 20px ;width: 40px; height: 40px; border-radius: 50%; background-color: #ccc; cursor: pointer; margin-inline: auto;"></div> -->
+                        <div class="button-wrapper">
+                            <div class="cursor" onclick="reload_and_draw('bgc4', 1,800);
+                                show_descr(
+                                    'refs',
+                                    4000,
+                                    'When the ray hits the wall, it reflects off it. In the place of reflection new rays are created, which can also reflect off the walls. Reflected rays will contain a fraction of  the original ray energy. If the original ray is reflected  using 4 new rays, each of them will contain 1/4 of the original ray energy. Some energy also will be lost due to absorption.'
+                                ); show_reflection_rays();">1</div>
+                            <div data-delay="2000" class="cursor_text" >first reflection</div>
+                        </div>
+                        
+
+                        <!-- <div onclick="reload_and_draw('bgc4', 1,600, 0)" style="margin-top: 20px ;width: 30px; height: 30px; border-radius: 50%; background-color: #ccc; cursor: pointer; margin-inline: auto;"></div> -->
+
+                        <div class="button-wrapper">
+                            <div class="cursor" onclick="reload_and_draw('bgc4', 1,600, 0); show_descr('refs', 4000); ">2</div>
+                            <div data-delay="2000" class="cursor_text" >second reflection</div>
+                        </div>
+
+                        
+                        <!-- <div onclick="reload_and_draw('bgc4', 1,600, 400)" style="margin-top: 20px ;width: 30px; height: 30px; border-radius: 50%; background-color: #ccc; cursor: pointer; margin-inline: auto;"></div> -->
+                        <div class="button-wrapper">
+                            <div class="cursor" onclick="reload_and_draw('bgc4', 1,600, 400); show_descr('refs', 4000); ">2</div>
+                            <div data-delay="2000" class="cursor_text" >second reflection</div>
+                        </div>
+
+					</div>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__path" style="opacity: 1;" data-id="descr">
+                        To caputre the sound from simulation let's trace the path of the rays that reached the listener.
+                    </div>
+
+					<div data-id="bg-ref" style="position: relative; overflow: hidden; border: 2px solid white; height: 400px; width: 800px; margin-inline: auto;">
+                        <img src="speaker.webp" style="position: absolute; top: 150px; left: 40px; height: 70px;" data-id="speaker"/>
+						<img src="mike.png" style="position: absolute; top: 150px; left: 700px; height: 70px;"/>
+						<div 
+							data-auto-animate-delay="2"
+							style="
+								width: 250px;
+								position: absolute;
+								top: 220px;
+								left: 110px;
+								border: 8px solid white;
+								transform-origin: left;
+								transform: rotate(45deg); 
+							"
+						></div>
+						<p 
+							data-id="meters1"
+						 	style="position: absolute; top: 300px; left: 110px; font-size: 24px;"
+							data-auto-animate-delay="2.2"
+						>1.2m</p>
+						<div 
+							data-auto-animate-delay="3"
+							data-id="ray_2"
+							style="
+								width: 450px;
+								position: absolute;
+								top: 400px;
+								left: 300px;
+								border: 4px solid white;
+								transform-origin: left;
+								transform: rotate(-65deg); 
+							"
+						></div>
+						<p
+							data-id="meters2"
+							style="position: absolute; top: 200px; left: 410px; font-size: 24px;"
+							data-auto-animate-delay="3.2"
+						>2.4m</p>
+						<div 
+							data-auto-animate-delay="4"
+							data-id="ray_3"
+							style="
+								width: 280px;
+								position: absolute;
+								top: -10px;
+								left: 490px;
+								border: 2px solid white;
+								transform-origin: left;
+								transform: rotate(45deg); 
+							"
+						></div>
+						<p
+							data-id="meters3"
+							data-auto-animate-delay="4.2"
+							style="position: absolute; top: 70px; left: 620px; font-size: 24px;"
+						>1.5m</p>
+					</div>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+					<div data-id="bg-ref" style="position: relative; overflow: hidden; border: 2px solid white; height: 400px; width: 800px; margin-inline: auto;">
+                        <img src="speaker.webp" style="position: absolute; top: 150px; left: 40px; height: 70px;" data-id="speaker"/>
+						<img src="mike.png" style="position: absolute; top: 150px; left: 700px; height: 70px;"/>
+						<div 
+							style="
+								width: 250px;
+								position: absolute;
+								top: 220px;
+								left: 110px;
+								border: 8px solid white;
+								transform-origin: left;
+								transform: rotate(45deg); 
+							"
+						></div>
+						<div 
+							style="
+								width: 450px;
+								position: absolute;
+								top: 400px;
+								left: 300px;
+								border: 4px solid white;
+								transform-origin: left;
+								transform: rotate(-65deg); 
+							"
+						></div>
+						<div 
+							style="
+								width: 280px;
+								position: absolute;
+								top: -10px;
+								left: 490px;
+								border: 2px solid white;
+								transform-origin: left;
+								transform: rotate(45deg); 
+							"
+						></div>
+					</div>
+					<div style="display: flex; margin-inline: auto; width: fit-content; gap:20px">
+						<p 
+							data-id="meters1"
+						>1.2m</p>
+						<p
+							data-id="meters2"
+						>2.4m</p>
+						<p
+							data-id="meters3"
+						>1.5m</p>
+					</div>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+					<div data-id="bg-ref" style="position: relative; overflow: hidden; border: 2px solid white; height: 400px; width: 800px; margin-inline: auto;">
+                        <img src="speaker.webp" style="position: absolute; top: 150px; left: 40px; height: 70px;" data-id="speaker"/>
+						<img src="mike.png" style="position: absolute; top: 150px; left: 700px; height: 70px;"/>
+						<div 
+							style="
+								width: 250px;
+								position: absolute;
+								top: 220px;
+								left: 110px;
+								border: 8px solid white;
+								transform-origin: left;
+								transform: rotate(45deg); 
+							"
+						></div>
+						<div 
+							style="
+								width: 450px;
+								position: absolute;
+								top: 400px;
+								left: 300px;
+								border: 4px solid white;
+								transform-origin: left;
+								transform: rotate(-65deg); 
+							"
+						></div>
+						<div 
+							style="
+								width: 280px;
+								position: absolute;
+								top: -10px;
+								left: 490px;
+								border: 2px solid white;
+								transform-origin: left;
+								transform: rotate(45deg); 
+							"
+						></div>
+					</div>
+					<div style="display: flex; margin-inline: auto; width: fit-content; gap:20px">
+						<p 
+							data-id="meters1"
+						 	style="font-size: 24px;"
+						>1.2m</p>
+						<p
+							data-id="meters2"
+							style="font-size: 24px;"
+						>2.4m</p>
+						<p
+							data-id="meters3"
+							style="font-size: 24px;"
+						>1.5m</p>
+					</div>
+                    <small> Due to reflections and absorptions the registered ray carried only fraction of the original wave energy.</small>
+					<p data-id="uenergi" style="font-size: 32px;">Energy fraction: 0.125</p>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+					<p data-id="uenergi" style="font-size: 18px; margin-bottom: 200px; margin-top: -150px;">Energy fraction: 0.125</p>
+                    <small data-id="lets_sum"> Let's sum up the distances the sound wave traveled.</small>
+					<div style="display: flex; margin-inline: auto; width: fit-content; gap:20px">
+						<p 
+							data-id="meters1"
+						>1.2m</p>
+						<p 
+						>+</p>
+						<p
+							data-id="meters2"
+						>2.4m</p>
+						<p 
+						>+</p>
+						<p
+							data-id="meters3"
+						>1.5m</p>
+					</div>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+					<p data-id="uenergi" style="font-size: 18px; margin-bottom: 200px; margin-top: -150px;">Energy fraction: 0.125</p>
+                    <small data-id="lets_sum"> Let's sum up the distances the sound wave traveled.</small>
+					<p >5.1m</p>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+					<p data-id="uenergi" style="font-size: 18px; margin-bottom: 200px; margin-top: -150px;">Energy fraction: 0.125</p>
+                    <small data-id="lets_calc" > The speed of sound in air is 343 m/s. So let's calculate the time it took for the sound to travel 5.1m.</small>
+					<p >5.1m</p>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+					<p data-id="uenergi" style="font-size: 18px; margin-bottom: 200px; margin-top: -150px;">Energy fraction: 0.125</p>
+                    <small data-id="lets_calc" > The speed of sound in air is 343 m/s. So let's calculate the time it took for the sound to travel 5.1m.</small>
+					<p data-id = "time" >Travel time: 15ms</p>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <small>Now we've got all the information about the ray to prepare the sound with the reverb.</small>
+					<p data-id="uenergi">Energy fraction: 0.125</p>
+					<p data-id = "time" >Travel time: 15ms</p>
+				</section>
+
+				
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+					<h4>Applying reverb</h4>
+					<img src="widmo.png" style="height: 200px; "/>	
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <small>This is the original audio file that we want to apply reverb to.</small>
+					<img src="widmo.png" style="height: 200px; "/>	
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <small> Let's see how the reverb is applied to the audio file. </small>
+					<img src="widmo.png" style="height: 200px; "/>	
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__reverb" style="opacity: 1;" data-id="descr">
+                        First lets create an empty sound track that is represented by the white line.
+                    </div>
+					<img src="widmo.png" style="height: 100px; "/>	
+					<hr data-id="base" style="border: 1px solid white; width: 100%; margin-top: 200px;"/>
+				</section>
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__reverb" style="opacity: 1;" data-id="descr">
+                        Now, let's make a list of all the rays that reached the listener. In reality there will be a lot more then 4 (propably in the order of thousands or more).
+                    </div>
+					<img src="widmo.png" style="height: 100px; "/>	
+					<table data-id="rays" style="font-size: 32px;">
+						<tr>
+							<td style="font-size: 18px;">Travel time: </td>
+							<td>30ms</td>
+							<td>50ms</td>
+							<td>100ms</td>
+							<td>200ms</td>
+						</tr>
+						<tr>
+							<td style="font-size: 18px;">Energy fraction: </td>
+							<td>0.5</td>
+							<td>0.2</td>
+							<td>0.2</td>
+							<td>0.01</td>
+						</tr>
+					</table>
+
+					<hr data-id="base" style="border: 1px solid white; width: 100%; margin-top: 200px;"/>
+				</section>
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__reverb" style="opacity: 1;" data-id="descr">
+                        Let's grab the first ray and process it.
+                    </div>
+
+					<img src="widmo.png" style="height: 100px; "/>	
+					<table data-id="rays" style="font-size: 32px;">
+						<tr>
+							<td style="font-size: 18px;">Travel time: </td>
+							<td style="border: 2px solid white;">30ms</td>
+							<td>50ms</td>
+							<td>100ms</td>
+							<td>200ms</td>
+						</tr>
+						<tr>
+							<td style="font-size: 18px;">Energy fraction: </td>
+							<td style="border: 2px solid white;">0.5</td>
+							<td>0.2</td>
+							<td>0.2</td>
+							<td>0.01</td>
+						</tr>
+					</table>
+
+					<hr data-id="base" style="border: 1px solid white; width: 100%; margin-top: 200px;"/>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__reverb" style="opacity: 1;" data-id="descr">
+                        First we create a copy of the original audio file.
+                    </div>
+					<table data-id="rays" style="font-size: 32px;">
+						<tr>
+							<td style="font-size: 18px;">Travel time: </td>
+							<td style="border: 2px solid white;">30ms</td>
+							<td>50ms</td>
+							<td>100ms</td>
+							<td>200ms</td>
+						</tr>
+						<tr>
+							<td style="font-size: 18px;">Energy fraction: </td>
+							<td style="border: 2px solid white;">0.5</td>
+							<td>0.2</td>
+							<td>0.2</td>
+							<td>0.01</td>
+						</tr>
+					</table>
+					<img data-id="wary1" src="widmo.png" style="height: 100px; "/>	
+
+					<hr data-id="base" style="border: 1px solid white; width: 100%; margin-top: 100px;"/>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__reverb" style="opacity: 1;" data-id="descr">
+                        Then the volume is reduced by the energy fraction of the ray.
+                    </div>
+					<table data-id="rays" style="font-size: 32px;">
+						<tr>
+							<td style="font-size: 18px;">Travel time: </td>
+							<td style="border: 2px solid white;">30ms</td>
+							<td>50ms</td>
+							<td>100ms</td>
+							<td>200ms</td>
+						</tr>
+						<tr>
+							<td style="font-size: 18px;">Energy fraction: </td>
+							<td style="border: 2px solid white;">0.5</td>
+							<td>0.2</td>
+							<td>0.2</td>
+							<td>0.01</td>
+						</tr>
+					</table>
+					<img data-id="wary1" src="widmo.png" style="height: 60px; width: 250px;">	
+
+					<hr data-id="base" style="border: 1px solid white; width: 100%; margin-top: 100px;"/>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__reverb" style="opacity: 1;" data-id="descr">
+                        After that we place the reduced original audio file in the new empty sound track shifted by the travel time of the ray.
+                    </div>
+					<table data-id="rays" style="font-size: 32px;">
+						<!-- <img  data-id="new_sound" src="widmo.png" style="height: 0px; "/>	 -->
+						<tr>
+							<td style="font-size: 18px;">Travel time: </td>
+							<td style="border: 2px solid white;">30ms</td>
+							<td>50ms</td>
+							<td>100ms</td>
+							<td>200ms</td>
+						</tr>
+						<tr>
+							<td style="font-size: 18px;">Energy fraction: </td>
+							<td style="border: 2px solid white;">0.5</td>
+							<td>0.2</td>
+							<td>0.2</td>
+							<td>0.01</td>
+						</tr>
+					</table>
+					<img data-id="wray1" src="widmo.png" style="height: 60px; width: 250px; margin-bottom: -145px; margin-left: -400px;">	
+
+					<hr data-id="base" style="border: 1px solid white; width: 100%; margin-top: 100px; "/>
+					<p style="margin-left: -650px; font-size: 24px;">|<br>30ms</p>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__reverb" style="opacity: 1;" data-id="descr">
+                        We repeat the process for all the rays that reached the listener.
+                    </div>
+					<table data-id="rays" style="font-size: 32px;">
+						<tr>
+							<td style="font-size: 18px;">Travel time: </td>
+							<td>30ms</td>
+							<td style="border: 2px solid white;">50ms</td>
+							<td>100ms</td>
+							<td>200ms</td>
+						</tr>
+						<tr>
+							<td style="font-size: 18px;">Energy fraction: </td>
+							<td>0.5</td>
+							<td style="border: 2px solid white;">0.2</td>
+							<td>0.2</td>
+							<td>0.01</td>
+						</tr>
+					</table>
+					<img  data-id="new_sound" src="widmo.png" style="height: 100px; "/>	
+					<br>
+
+					<img data-id="wray1" src="widmo.png" style="height: 60px; width: 250px; margin-bottom: -145px; margin-left: -400px;">	
+
+					<hr data-id="base" style="border: 1px solid white; width: 100%; margin-top: 100px; "/>
+					<p style="margin-left: -650px; font-size: 24px;">|<br>30ms</p>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__reverb" style="opacity: 1;" data-id="descr">
+                        We repeat the process for all the rays that reached the listener.
+                    </div>
+					<table data-id="rays" style="font-size: 32px;">
+						<tr>
+							<td style="font-size: 18px;">Travel time: </td>
+							<td>30ms</td>
+							<td style="border: 2px solid white;">50ms</td>
+							<td>100ms</td>
+							<td>200ms</td>
+						</tr>
+						<tr>
+							<td style="font-size: 18px;">Energy fraction: </td>
+							<td>0.5</td>
+							<td style="border: 2px solid white;">0.2</td>
+							<td>0.2</td>
+							<td>0.01</td>
+						</tr>
+					</table>
+					<img  data-id="new_sound" src="widmo.png" style="height: 30px; width: 250px; "/>	
+					<br>
+
+					<img data-id="wray1" src="widmo.png" style="height: 60px; width: 250px; margin-bottom: -145px; margin-left: -400px;">	
+
+					<hr data-id="base" style="border: 1px solid white; width: 100%; margin-top: 100px; "/>
+					<p style="margin-left: -650px; font-size: 24px;">|<br>30ms</p>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__reverb" style="opacity: 1;" data-id="descr">
+                        We repeat the process for all the rays that reached the listener.
+                    </div>
+					<table data-id="rays" style="font-size: 32px;">
+						<tr>
+							<td style="font-size: 18px;">Travel time: </td>
+							<td>30ms</td>
+							<td style="border: 2px solid white;">50ms</td>
+							<td>100ms</td>
+							<td>200ms</td>
+						</tr>
+						<tr>
+							<td style="font-size: 18px;">Energy fraction: </td>
+							<td>0.5</td>
+							<td style="border: 2px solid white;">0.2</td>
+							<td>0.2</td>
+							<td>0.01</td>
+						</tr>
+					</table>
+
+					<img data-id="wray1" src="widmo.png" style="height: 60px; width: 250px; margin-bottom: -200px; margin-left: -400px;">	
+					<br>
+
+					<img  data-id="new_sound" src="widmo.png" style="height: 30px; width: 250px; margin-bottom: -130px; margin-left: -100px;">	
+
+					<hr data-id="base" style="border: 1px solid white; width: 100%; margin-top: 100px; "/>
+					<p style="margin-left: -650px; font-size: 24px;">|<br>30ms</p>
+					<p style="margin-left: -350px; margin-top: -80px; font-size: 24px;">|<br>50ms</p>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__reverb" style="opacity: 1;" data-id="descr">
+                        We repeat the process for all the rays that reached the listener.
+                    </div>
+					<table data-id="rays" style="font-size: 32px;">
+						<tr>
+							<td style="font-size: 18px;">Travel time: </td>
+							<td>30ms</td>
+							<td>50ms</td>
+							<td style="border: 2px solid white;">100ms</td>
+							<td>200ms</td>
+						</tr>
+						<tr>
+							<td style="font-size: 18px;">Energy fraction: </td>
+							<td>0.5</td>
+							<td>0.2</td>
+							<td style="border: 2px solid white;">0.2</td>
+							<td>0.01</td>
+						</tr>
+					</table>
+					<img  data-id="new_sound2" src="widmo.png" style="height: 100px; width: 250px;">	
+					<br>
+
+					<img data-id="wray1" src="widmo.png" style="height: 60px; width: 250px; margin-bottom: -200px; margin-left: -400px;">	
+					<br>
+					<img  data-id="new_sound" src="widmo.png" style="height: 30px; width: 250px; margin-bottom: -130px; margin-left: -100px;">	
+
+					<hr data-id="base" style="border: 1px solid white; width: 100%; margin-top: 100px; "/>
+					<p style="margin-left: -650px; font-size: 24px;">|<br>30ms</p>
+					<p style="margin-left: -350px; margin-top: -80px; font-size: 24px;">|<br>50ms</p>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__reverb" style="opacity: 1;" data-id="descr">
+                        We repeat the process for all the rays that reached the listener.
+                    </div>
+					<table data-id="rays" style="font-size: 32px;">
+						<tr>
+							<td style="font-size: 18px;">Travel time: </td>
+							<td>30ms</td>
+							<td>50ms</td>
+							<td style="border: 2px solid white;">100ms</td>
+							<td>200ms</td>
+						</tr>
+						<tr>
+							<td style="font-size: 18px;">Energy fraction: </td>
+							<td>0.5</td>
+							<td>0.2</td>
+							<td style="border: 2px solid white;">0.2</td>
+							<td>0.01</td>
+						</tr>
+					</table>
+					<img  data-id="new_sound2" src="widmo.png" style="height: 30px; width: 250px;">	
+					<br>
+
+					<img data-id="wray1" src="widmo.png" style="height: 60px; width: 250px; margin-bottom: -200px; margin-left: -400px;">	
+					<br>
+					<img  data-id="new_sound" src="widmo.png" style="height: 30px; width: 250px; margin-bottom: -130px; margin-left: -100px;">	
+
+					<hr data-id="base" style="border: 1px solid white; width: 100%; margin-top: 100px; "/>
+					<p style="margin-left: -650px; font-size: 24px;">|<br>30ms</p>
+					<p style="margin-left: -350px; margin-top: -80px; font-size: 24px;">|<br>50ms</p>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__reverb" style="opacity: 1;" data-id="descr">
+                        We repeat the process for all the rays that reached the listener.
+                    </div>
+					<table data-id="rays" style="font-size: 32px;">
+						<tr>
+							<td style="font-size: 18px;">Travel time: </td>
+							<td>30ms</td>
+							<td>50ms</td>
+							<td style="border: 2px solid white;">100ms</td>
+							<td>200ms</td>
+						</tr>
+						<tr>
+							<td style="font-size: 18px;">Energy fraction: </td>
+							<td>0.5</td>
+							<td>0.2</td>
+							<td style="border: 2px solid white;">0.2</td>
+							<td>0.01</td>
+						</tr>
+					</table>
+
+					<img data-id="wray1" src="widmo.png" style="height: 60px; width: 250px; margin-bottom: -255px; margin-left: -400px;">	
+					<br>
+					<img  data-id="new_sound" src="widmo.png" style="height: 30px; width: 250px; margin-bottom: -185px; margin-left: -100px;">	
+					<br>
+					<img  data-id="new_sound2" src="widmo.png" style="height: 30px; width: 250px; margin-bottom: -130px; margin-left: 200px;">	
+
+					<hr data-id="base" style="border: 1px solid white; width: 100%; margin-top: 100px; "/>
+					<p style="margin-left: -650px; font-size: 24px;">|<br>30ms</p>
+					<p style="margin-left: -350px; margin-top: -80px; font-size: 24px;">|<br>50ms</p>
+					<p style="margin-left: -50px; margin-top: -80px; font-size: 24px;">|<br>100ms</p>
+				</section>
+
+				<section data-auto-animate data-auto-animate-easing="cubic-bezier(0.770, 0.000, 0.175, 1.000)">
+                    <div class="description" id="descr__reverb" style="opacity: 1;" data-id="descr">
+                        After processing all the rays we get the final sound track with the reverb applied.
+                    </div>
+					<div style="margin-top: -200px; ">
+					<img data-id="wray1" src="widmo.png" style="height: 240px; width: 250px; margin-bottom: -345px; margin-left: -400px;">	
+					<br>
+					<img  data-id="new_sound" src="widmo.png" style="height: 120px; width: 250px; margin-bottom: -230px; margin-left: -100px;">	
+					<br>
+					<img  data-id="new_sound2" src="widmo.png" style="height: 120px; width: 250px; margin-bottom: -175px; margin-left: 200px;">	
+
+					<hr data-id="base" style="border: 1px solid white; width: 100%; margin-top: 100px; "/>
+					</div>
+				</section>
+
+				<section>
+                    Thank you for your attention. If you want to try the app yourself, visit the github repository.
+                    <div style="display: flex; justify-content: center; gap: 50px;">
+                    <img src="gui_simple.png" style="height: 400px; "/>
+                    <style>
+                        .github {
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            background-color: #333;
+                            color: white;
+                            padding: 10px;
+                            border-radius: 5px;
+                            background-color: #005E7C;
+                            transition: all 0.3s;
+                        }
+                        .github:hover {
+                            transition: all 0.3s;
+                            background-color: #7fc9e2;
+                            scale: 1.1;
+                        }
+                    </style>
+                    <a href="https://github.com/KarolPlonka/rt_reverb" target="_blank" class="github" style="align-self: center;">
+                        <img src="github.png" style="height: 50px; "/>
+                    </a>
+                    <div>
+                        
+			
+                </section>
+
+			</div>
+
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/zoom/zoom.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/search/search.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+
+			// Also available as an ES module, see:
+			// https://revealjs.com/initialization/
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				center: true,
+				hash: true,
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight ]
+			});
+
+		</script>
+
+	</body>
+</html>

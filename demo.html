@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Prezentacja reveal.js – Karol Płonka</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Hakim El Hattab">
+
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/league.css" id="theme">
+		
+		<!-- Custom CSS -->
+		<style>
+			body{
+				letter-spacing: 0.1em !important;
+			}
+			
+			p, ol{
+				font-size: 28px;
+				font-family: 'roboto';
+				font-weight: 100;
+				text-align: justify;
+				line-height: 1.3 !important;
+			}
+			
+			li{
+				margin-bottom: 0.5em !important;
+			}
+			
+			table{
+				font-size: 28px;
+			}
+			
+			th{
+				font-size: 20px;
+				text-align: center !important;
+			}
+			
+			.diag{
+				background-color: floralwhite;
+				box-shadow: 0px 0px 40px rgba(0,0,0,0.5)
+			}
+			
+			.column{
+				margin-left: 100px;
+				height: 500px;
+				margin-top: 50px;
+				margin-bottom: auto;
+			}
+			
+			.column_center{
+				margin-top: 20%;
+			}
+			
+			#waveCanvas{
+				position: absolute;
+			}
+			
+			.cursor {
+				width: 20px;
+				height: 20px;
+				border-radius: 50%;
+				background-color: #ffffff;
+				transform: translate(-50%, -50%);
+				top: 0;
+				margin-left: 50%;
+				animation: pulse 1s infinite;
+			  }
+			  
+			  @keyframes pulse {
+				0% {
+				  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+				}
+				70% {
+				  box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+				}
+				100% {
+				  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+				}
+			  }
+			
+			.fade_in{
+				opacity: 0;
+				animation: fadeIn 1s ease-in-out 1s forwards;
+			}
+			
+			@keyframes fadeIn {
+			0% {
+				opacity: 0;
+			}
+			100% {
+				opacity: 1;
+			}
+			}
+		</style>
+
+		<link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+	</head>
+
+	<body >
+		<canvas id="waveCanvas"></canvas>
+		<script type="text/javascript">
+
+			document.addEventListener("click", getCursorPosition);
+
+			var canvasWaves = document.getElementById('waveCanvas');
+			var contextWaves = canvasWaves.getContext('2d');
+
+			canvasWaves.height = window.innerHeight;
+			canvasWaves.width = window.innerWidth;
+
+			var max_depth = 3;
+			var max_r = 300;
+			var thickness = 10;
+			var max_circles_amount = 5;
+			var circles_amount = 0;
+			var base_opaciy = 0.3;
+
+			contextWaves.beginPath();
+			contextWaves.lineWidth = 2;
+
+			var circles = [];
+
+			function newCircle(x, y, d) {
+				if (circles_amount > max_circles_amount) return;
+
+				circles.push({ "x": x, "y": y, "r": 1, "depth": d })
+				circles_amount += 1;
+			}
+
+			function getCursorPosition(event) {
+				newCircle(event.clientX, event.clientY, 1)
+			}
+
+			function draw() {
+				contextWaves.clearRect(0, 0, canvasWaves.width, canvasWaves.height);
+
+				circles.forEach((circle, index) => {
+
+					for (var i = thickness; i > -thickness; i--) {
+						if (circle.r < i) break;
+
+						contextWaves.beginPath();
+
+						if (i == 0) opacity = base_opaciy * ((1 - (circle.depth / max_depth)) * (1 - (circle.r / max_r)));
+						else opacity = base_opaciy * ((1 - (Math.abs(i) / thickness)) * (1 - (circle.depth / max_depth)) * (1 - (circle.r / max_r)));
+
+						contextWaves.strokeStyle = "rgba( 255, 0, 255, " + opacity + " )"
+						contextWaves.arc(circle.x, circle.y, circle.r + i, 0, 2 * Math.PI);
+						contextWaves.stroke();
+					}
+
+					//delete circle
+					if (circle.r > max_r || circle.depth > max_depth) {
+						circles.splice(index, 1);
+						circles_amount -= 1;
+					}
+
+					//wall reflections
+					if (circle.x + circle.r == canvasWaves.width) {
+						newCircle(canvasWaves.width, circle.y, circle.depth + 1);
+					}
+					if (circle.x - circle.r == 0) {
+						newCircle(0, circle.y, circle.depth + 1);
+					}
+					if (circle.y + circle.r == canvasWaves.height) {
+						newCircle(circle.x, canvasWaves.height, circle.depth + 1);
+					}
+					if (circle.y - circle.r == 0) {
+						newCircle(circle.x, 0, circle.depth + 1);
+					}
+
+					circle.r += 1;
+				});
+
+				requestAnimationFrame(draw);
+			}
+			draw()
+		</script>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<div id="output"></div>
+					<div id="x"></div>
+					<div class="r-hstack">
+						<div class="column_center fade_in">
+							<div class="cursor"></div>
+							<p  data-delay="2000" style="text-align: center; font-size:small;">naciśnij w dowolne miejsce</p>
+						</div>
+						<div class="column">
+							<canvas id="sine" width="900" height="200"></canvas>
+							<script type="text/javascript">
+
+								var canvas = document.getElementById("sine");
+								var context = canvas.getContext("2d");
+
+								var amplitude = 50;
+								var frequency = 0.02;
+								var offset = 0;
+								var sineMargin = 200;
+
+								const gradSine = context.createLinearGradient(sineMargin, 0, canvas.width - sineMargin, 0);
+								gradSine.addColorStop(0.0, 'transparent');
+								gradSine.addColorStop(0.5, 'rgba(255,0,255)');
+								gradSine.addColorStop(1, 'transparent');
+
+								const gradLine = context.createLinearGradient(0, 0, canvas.width, 0);
+								gradLine.addColorStop(0.0, 'transparent');
+								gradLine.addColorStop(0.5, 'black');
+								gradLine.addColorStop(1, 'transparent');
+
+								function drawLine() {
+									context.clearRect(0, 0, canvas.width, canvas.height);
+									context.lineWidth = 7;
+									context.strokeStyle = gradLine;
+									context.beginPath();
+									context.moveTo(0, canvas.height / 2)
+									context.lineTo(canvas.width, canvas.height / 2)
+									context.stroke()
+									requestAnimationFrame(drawLine);
+								}
+
+								function drawSine() {
+									context.strokeStyle = gradSine;
+									context.beginPath();
+									context.lineWidth = 15;
+									for (var x = sineMargin; x < canvas.width - sineMargin; x++) {
+										var y = amplitude * Math.sin(frequency * x + offset);
+										context.lineTo(x, canvas.height / 2 - y);
+									}
+									context.stroke();
+									offset += 0.04;
+
+									requestAnimationFrame(drawSine);
+								}
+
+								drawLine();
+								drawSine();
+							</script>
+							
+							<h3 style="text-align: left;">Symulacja propagacji fal akustycznych w zamkniętych lub półotwartych pomieszczeniach</h4>
+							<p style="text-align: left;">Propozycja pracy inżynierskiej</p>
+							<p style="text-align: right;">Karol Płonka</p>
+						</div>
+					</div>
+				</section>
+
+				<section>
+					<h2>Wstęp</h2>
+					<p>
+						Na wstępie chciałbym zaznaczyć, że opisany tutaj temat jest
+						jedynie pomysłem. Co prawda obecnie pomysłem najbardziej
+						mnie interesującym, lecz zdaję sobie sprawę, że ze względu na
+						jego naturę może on okazać się nieodpowiedni do zrealizowania
+						go na potrzeby pracy inżynierskiej. Warto też wspomnieć że
+						istnieje już stosunkowo sporo projektów implementujących
+						symulację dźwięku. Tak więc nie przywiązuję się zbyt mocno do
+						tego projektu i jestem też otwarty na inne ewentualne tematy,
+						które mogłyby mnie zainteresować.
+					</p>
+				</section>
+
+				<section>
+					<section data-auto-animate>
+						<h2 data-id="title"><div >Omówienie projektu</div></h2>
+						<p>
+							Projekt polegałby na symulacji fal akustycznych i miałby
+							przewidywać takie zjawiska jak interakcja ich z otoczeniem
+							(odbicia) oraz ich oddziaływanie między sobą. Założeniem
+							programu byłoby generowanie jak najbardziej realistycznego
+							dźwięku dla wirtualnego pomieszczenia.
+						</p>
+
+
+					</section>
+					<section data-auto-animate>
+
+						<h2 data-id="title">Omówienie projektu</h2>
+						
+							<ul style="font-size: 32px; list-style-type: '⏩   ';">
+									<li><b style="font-size: 40px;">Użytkownik wprowadza:</b>
+										<ol>
+											<li>Plan pomieszczenia (budowany przez użytkownika za pomocą GUI).</li>
+											<li>Punkt lub punkty w przestrzeni w których dźwięk będzie generowany.</li>
+											<li>Ścieżkę lub ścieżki audio, które mają być odtwarzane.</li>
+											<li>Punkt lub punkty w przestrzeni, w których dźwięk będzie rejestrowany.</li>
+										</ol>
+									</li>
+							</ul>
+
+							<ul style="font-size: 32px; list-style-type: '⏪   ';">
+									<li><span class="fa-li"><i class="fa-solid fa-check-square"></i></span><b style="font-size: 40px;">Otrzymuje:</b>
+										<ol>
+											<li>Ścieżkę lub ścieżki audio zarejestrowaną w wyznaczonych punktach.</li>
+											<li>Wizualizację propagacji fal w pomieszczeniu.</li>
+										</ol>
+									</li>
+							</ul>
+					</section>
+					<section data-auto-animate>
+						<h2 data-id="title">Omówienie projektu</h2>
+						<img src="media/diagram.png" class="diag">
+					</section>
+					<section data-auto-animate>
+						<h2 data-id="title">Omówienie projektu</h2>
+						<iframe data-src="https://www.thanassis.space/wavePhysics.html" data-preload></iframe>
+					</section>
+				</section>
+				
+				<section>
+					<section data-auto-animate>
+						<h2 data-id="title">Motywacja</h2>
+						<p>
+							Motywacją jest stworzenie narzędzia pozwalającego na
+							odwzorowanie zachowania fali akustycznej w danym
+							pomieszczeniu. Jeśli okazałoby się ,że da się za jego pomocą
+							uzyskać wystarczająco realistyczne zachowanie, narzędzie
+							mogłoby zostać używane na przykład przez inżynierów dźwięku w
+							<b>post-produkcjach filmowych</b>. Posiadali by oni możliwość
+							dołączenia do oryginalnej ścieżki dźwiękowej fragmentu dźwięku,
+							który nie został oryginalnie zarejestrowany w czasie kręcenia
+							sceny.
+						</p>
+					</section>
+					<section  data-auto-animate>
+						<h2 data-id="title">Motywacja</h2>
+						<p>
+							W przypadku gdy narzędzie nie okazałoby się użyteczne w wyżej
+							wymienionym przeznaczeniu mogłoby zostać używane jako
+							narzędzie kreatywne w <b>Sound Design</b>‘ie (najprawdopodobniej po
+							wprowadzeniu kilku modyfikacji). Ze względu na jego budowę
+							mogłoby służyć jako narzędzie do generowania efektu pogłosu, z
+							możliwością podglądu zachowania się dźwięku w wirtualnym
+							pomieszczeniu. Reprezentacja graficzna wirtualnego
+							pomieszczenia i możliwość manipulacji nim mogłaby też okazać
+							się dość intuicyjnym sposobem na generowanie interesującego
+							użytkownika charakter pogłosu.
+						</p>
+					</section>	
+				</section>
+				
+				<section>
+					<section  data-auto-animate>
+						<h2><div data-id="title">Wiedza</div></h2>
+						<p>
+							Motywacją jest stworzenie narzędzia pozwalającego na
+							odwzorowanie zachowania fali akustycznej w danym
+							pomieszczeniu. Jeśli okazałoby się ,że da się za jego pomocą
+							uzyskać wystarczająco realistyczne zachowanie, narzędzie
+							mogłoby zostać używane na przykład przez inżynierów dźwięku w
+							<b>post-produkcjach filmowych</b>. Posiadali by oni możliwość
+							dołączenia do oryginalnej ścieżki dźwiękowej fragmentu dźwięku,
+							który nie został oryginalnie zarejestrowany w czasie kręcenia
+							sceny.
+						</p>
+					</section>
+					<section data-auto-animate>
+						<h2 data-id="title">Wymagana <div data-id="title">Wiedza</div></h2>
+						<p>
+							<ol>
+								<li>Obustronna konwersja pliku audio na matematyczny model reprezentujący fale akustyczne.</li>
+								<li>Funkcja opisującej zachowanie fali akustycznej dla danych właściwości w czasie.</li>
+								<li>Uwzględnienie odbicia fali od obiektu.</li>
+								<li>Uwzględnienie zmiany właściwości fali przy odbiciu od różnych rodzajów powierzchni obiektu.</li>
+								<li>Uwzględnienie interakcji między falami.</li>
+								<li>Wydedukowanie, które zjawiska można pominąć w celu zwiększenia wydajności.</li>
+							</ol>
+						</p>
+					</section>	
+				</section>
+				
+				<section id="fragments">
+					<h2>Narzędzia</h2>
+
+					<table>
+						<thead>
+							<tr>
+								<th>Narzędzie</th>
+								<th>Zastosowanie</th>
+							</tr>
+						</thead>
+						<tr class="fragment">
+							<td>Python</td>
+							<td>Prototyp i Testowanie</td>
+						</span>
+						<tr class="fragment">
+							<td>C++ / Rust</td>
+							<td>Końcowa wersji programu</td>
+						</tr>
+						<tr class="fragment">
+							<td>FFmpeg</td>
+							<td>Zarządzanie audio</td>
+						</tr>
+						<tr class="fragment">
+							<td>OpenGL lub alternatywa</td>
+							<td>Wizualizacja symulacji</td>
+						</tr>
+						<tr class="fragment">
+							<td>?</td>
+							<td>Budowanie przestrzeni wirtualnych z użyciem GUI</td>
+						</tr>
+						<tr class="fragment">
+							<td>VST (opcjonalnie)</td>
+							<td>Stworzenie wtyczki pod Sound Design</td>
+						</tr>
+					</table>
+					
+					<br>
+
+					<small>
+						Podane narzędzia to te, który jestem w stanie wymienić na ten
+						moment, przy realizacji projektu ta lista z pewnością szybko
+						zaczęła by rosnąć.
+					</small>
+					
+				</section>
+				
+				<section data-visibility="hidden">
+					<h2>Hidden Slides</h2>
+					<p>
+						This slide is visible in the source, but hidden when the presentation is viewed. You can show all hidden slides by setting the `showHiddenSlides` config option to `true`.
+					</p>
+				</section>
+				
+				<section>
+					<h2>Wzorzec Projektowy</h2>
+					<p>
+						Wzorzec projektowy, który bym zastosował to
+						najprawdopodobniej <a href="https://refactoring.guru/pl/design-patterns/facade"><b>Fasada</b></a> (Fascade).
+					</p>
+					<br>
+					<p>
+						Użytkownik miałby dostęp do tylko do interfejsu aby ułatwić
+						komunikację z programem. Program mógłby również stać się
+						częścią większej fasady, jako część programu do edycji dźwięku
+						lub opakowanie go jako wtyczkę VST z przeznaczeniem do użycia
+						w DAW (Digital Audio Workstation).
+					</p>
+				</section>
+
+				<section style="text-align: left;">
+					<h1>Koniec</h1>
+					<p>
+						Karol Płonka
+					</p>
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/zoom/zoom.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/search/search.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+
+			// Also available as an ES module, see:
+			// https://revealjs.com/initialization/
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				center: true,
+				hash: true,
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight ]
+			});
+
+		</script>
+
+	</body>
+</html>
