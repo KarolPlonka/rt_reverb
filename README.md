@@ -24,6 +24,7 @@ This app allows you to simulate how sound will behave in a room. Create virtual 
 `git clone https://github.com/karolplonka/rt_reverb/`
 2. Build: </br>
 `.\Build.Ps1`
-> **_NOTE:_** This will build DLL library for ray tracing algorithm, create python virtual environment and install required python modules.
+> [!NOTE]  
+> This will build DLL library for ray tracing algorithm, create python virtual environment and install required python modules.
 3. Run: </br>
 `.\Run.Ps1`
