@@ -6,7 +6,7 @@ This app allows you to simulate how sound will behave in a room. Create virtual 
 
 ![Simple scene example](images/gui_simple.png)
 
-## Presentation
+## How it works?
 Checkout [interactive presentation](https://karolplonka.github.io/rt_reverb/) explaining the process of Audio Ray Tracing.
 
 
