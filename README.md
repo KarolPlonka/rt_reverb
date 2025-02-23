@@ -32,3 +32,11 @@ Checkout [interactive presentation](https://karolplonka.github.io/rt_reverb/) ex
 > This will build DLL library for ray tracing algorithm, create python virtual environment and install required python modules.
 3. Run: </br>
 `.\Run.Ps1`
+
+
+## Samples
+### Original:
+https://github.com/user-attachments/assets/080b3cb2-b9b4-412e-98e8-a85e5398e9f9
+
+### With applied reverb:
+https://github.com/user-attachments/assets/86b95350-847b-4b42-b420-a407a0dc48ca
